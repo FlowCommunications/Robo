@@ -150,11 +150,14 @@ class Run extends Base
 
     public function run()
     {
-        $this->cidFile = sys_get_temp_dir() . '/docker_' . uniqid() . '.cid';
         $result = parent::run();
         $time = $result->getExecutionTime();
         $cid = $this->getCid();
-        return new Result($this, $result->getExitCode(), $result->getMessage(), ['cid' => $cid, 'time' => $time, 'name' => $this->name]);
+        return new Result($this, $result->getExitCode(), $result->getMessage(), [
+            'cid' => $cid,
+            'time' => $time,
+            'name' => $this->name
+        ]);
     }
 
     protected function getCid()
