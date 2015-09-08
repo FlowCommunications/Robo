@@ -9,6 +9,7 @@ class Result
 {
     use TaskIO;
 
+    static $printCallback;
     static $stopOnFail = false;
 
     protected $exitCode;
@@ -23,9 +24,9 @@ class Result
         $this->exitCode = $exitCode;
         $this->message = $message;
         $this->data = $data;
-        
+
         $this->printResult();
-        
+
         if (self::$stopOnFail) {
             $this->stopOnFail();
         }
@@ -123,7 +124,7 @@ class Result
         $printOutput = true;
 
         $time = $this->getExecutionTime();
-        if ($time) $time = "Time <fg=yellow>$time</fg=yellow>";
+        //if ($time) $time = "Time <fg=yellow>$time</fg=yellow>";
 
         if ($this->task instanceof PrintedInterface) {
             $printOutput = !$this->task->getPrinted();
@@ -141,8 +142,13 @@ class Result
     {
         $time = $this->getExecutionTime();
         if (!$time) return;
-        $time = "in <fg=yellow>$time</fg=yellow>";
-        $this->printTaskSuccess("Done $time", $this->task);
+        //$time = "in <fg=yellow>$time</fg=yellow>";
+        //$this->printTaskSuccess("<info>Done</info>", $this->task);
     }
 
-} 
+    public static function setPrintCallback(callable $cb)
+    {
+        static::$printCallback = $cb;
+    }
+
+}

@@ -11,6 +11,7 @@ use Symfony\Component\Process\Process;
 trait ExecCommand
 {
     use Timer;
+    use TaskIO;
 
     protected $isPrinted = true;
     protected $workingDirectory;
@@ -56,15 +57,22 @@ trait ExecCommand
      */
     protected function executeCommand($command)
     {
+        $this->printTaskInfo("Running <fg=cyan>{$command}</fg=cyan>");
+
         $process = new Process($command);
+
         $process->setTimeout(null);
+
         if ($this->workingDirectory) {
             $process->setWorkingDirectory($this->workingDirectory);
         }
         $this->startTimer();
         if ($this->isPrinted) {
             $process->run(function ($type, $buffer) {
-                print $buffer;
+                $lines = explode("\n", trim($buffer));
+                foreach ($lines as $line) {
+                    $this->printTaskInfo($line);
+                }
             });
         } else {
             $process->run();

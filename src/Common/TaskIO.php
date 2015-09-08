@@ -5,22 +5,35 @@ trait TaskIO
 {
     use IO;
 
+    protected static function getNamePadded($name)
+    {
+
+        $GLOBALS['longestTaskName'] = isset($GLOBALS['longestTaskName']) ? $GLOBALS['longestTaskName'] : 0;
+
+        $GLOBALS['longestTaskName'] = strlen($name) > $GLOBALS['longestTaskName'] ? strlen($name) : $GLOBALS['longestTaskName'];
+
+        $char = strncasecmp(PHP_OS, 'WIN', 3) == 0 ? '>' : '➜';
+
+        return ' ' . str_pad($name, $GLOBALS['longestTaskName'], ' ') . " $char ";
+    }
+
     protected function printTaskInfo($text, $task = null)
     {
-        $name = $this->getPrintedTaskName($task);
-        $this->writeln(" <fg=white;bg=cyan;options=bold>[$name]</fg=white;bg=cyan;options=bold> $text");
+        $name = static::getNamePadded($this->getPrintedTaskName($task));
+
+        $this->printMultiLine($name, $text, "");
     }
 
     protected function printTaskSuccess($text, $task = null)
     {
-        $name = $this->getPrintedTaskName($task);
-        $this->writeln(" <fg=white;bg=green;options=bold>[$name]</fg=white;bg=green;options=bold> $text");
+        $name = static::getNamePadded($this->getPrintedTaskName($task));
+        $this->printMultiLine($name, $text, "fg=green");
     }
 
     protected function printTaskError($text, $task = null)
     {
-        $name = $this->getPrintedTaskName($task);
-        $this->writeln(" <fg=white;bg=red;options=bold>[$name]</fg=white;bg=red;options=bold> $text");
+        $name = static::getNamePadded($this->getPrintedTaskName($task));
+        $this->printMultiLine($name, $text, "fg=red");
     }
 
     protected function formatBytes($size, $precision = 2)
@@ -44,4 +57,31 @@ trait TaskIO
         $name = str_replace('Robo\Task\\', '' , $name);
         return $name;
     }
+
+    protected function printMultiLine($name, $text, $textColour)
+    {
+
+        if (!isset($GLOBALS['cols'])) {
+            $GLOBALS['cols'] = `tput cols`;
+        }
+
+        if (strpos($text, "\r")) {
+            $writeFunc = "write";
+        } else {
+            $writeFunc = "writeln";
+            $text = trim($text);
+        }
+
+        $lines = explode("\n", wordwrap($text, $GLOBALS['cols'] - strlen($name)));
+
+        $textColourOpen = $textColour ? "<$textColour>": "";
+        $textColourClose = $textColour ? "</$textColour>": "";
+
+        foreach ($lines as $line) {
+            call_user_func([$this->getOutput(), $writeFunc], "<bg=white;fg=black>$name</bg=white;fg=black> {$textColourOpen}{$line}{$textColourClose}");
+        }
+
+    }
+
+
 }
